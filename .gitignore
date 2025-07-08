@@ -41,11 +41,14 @@ composer.lock
 *.temp
 .cache/
 
-# Test files (optional - remove if you want to keep them)
+# Test files and development aids
 test_*.php
 test_*.html
 debug_*.html
 *_test.md
+CONNECTION_TEST.md
+FINAL_SOLUTION.md
+.zencoder/
 
 # Coverage reports
 coverage/
