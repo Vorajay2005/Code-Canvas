@@ -1,0 +1,33 @@
+{
+  "name": "codecanvas",
+  "version": "1.0.0",
+  "description": "A browser-based tool that converts hand-drawn flowcharts into executable code",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest",
+    "backend": "php -S localhost:8000 -t public/"
+  },
+  "keywords": ["visual-programming", "flowchart", "code-generation", "react", "konva"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "konva": "^9.2.0",
+    "react-konva": "^18.2.10",
+    "@monaco-editor/react": "^4.6.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8",
+    "jest": "^29.7.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.4"
+  }
+}
