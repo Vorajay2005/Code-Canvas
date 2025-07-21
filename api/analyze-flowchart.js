@@ -17,13 +17,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { flowchart_data } = req.body;
+    const { shapes, connections, flowchart_data } = req.body;
 
-    if (!flowchart_data) {
-      return res.status(400).json({ error: "Flowchart data is required" });
+    // Support both formats: new format (shapes, connections) and old format (flowchart_data)
+    let elements, edges;
+    if (shapes && connections) {
+      elements = shapes;
+      edges = connections;
+    } else if (flowchart_data) {
+      elements = flowchart_data.elements || flowchart_data.shapes || [];
+      edges = flowchart_data.edges || flowchart_data.connections || [];
+    } else {
+      return res
+        .status(400)
+        .json({ error: "Flowchart data is required (shapes and connections)" });
     }
 
-    const analysis = analyzeFlowchart(flowchart_data);
+    const analysis = analyzeFlowchart({ elements, edges });
 
     return res.status(200).json({
       success: true,
