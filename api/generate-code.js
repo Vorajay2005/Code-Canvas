@@ -24,15 +24,33 @@ export default async function handler(req, res) {
       language = "javascript",
     } = req.body;
 
+    // Log received data for debugging
+    console.log("API received data:", {
+      hasShapes: !!shapes,
+      shapesCount: shapes?.length || 0,
+      hasConnections: !!connections,
+      connectionsCount: connections?.length || 0,
+      hasFlowchartData: !!flowchart_data,
+      language,
+    });
+
     // Support both formats: new format (shapes, connections) and old format (flowchart_data)
     let elements, edges;
-    if (shapes && connections) {
+    if (shapes && connections !== undefined) {
       elements = shapes;
       edges = connections;
     } else if (flowchart_data) {
       elements = flowchart_data.elements || flowchart_data.shapes || [];
       edges = flowchart_data.edges || flowchart_data.connections || [];
     } else {
+      console.log(
+        "Missing data - shapes:",
+        !!shapes,
+        "connections:",
+        !!connections,
+        "flowchart_data:",
+        !!flowchart_data
+      );
       return res
         .status(400)
         .json({ error: "Flowchart data is required (shapes and connections)" });
@@ -76,9 +94,11 @@ function generateJavaScriptCode(elements) {
   let variables = new Set();
 
   elements.forEach((element) => {
-    const data = element.data || {};
-    const label = data.label || "";
-    const type = data.type || "";
+    // Handle both data formats: element.data.type/label and element.type/text
+    const type = element.type || element.data?.type || "";
+    const label = element.text || element.data?.label || "";
+
+    console.log("Processing element:", { type, label, elementId: element.id });
 
     if (type === "start" && !hasStart) {
       code += `function main() {\n`;
@@ -102,12 +122,20 @@ function generateJavaScriptCode(elements) {
       variables.add(varName);
       code += `    let ${varName} = prompt("${label}");\n`;
     } else if (type === "output" || type === "display") {
-      code += `    console.log(${label});\n`;
+      code += `    console.log("${label}");\n`;
+    } else if (type === "end") {
+      code += `    // End of program\n`;
     }
   });
 
   if (hasStart) {
     code += `}\n\n// Call the main function\nmain();`;
+  } else {
+    // If no start found, generate simple code structure
+    code += `// Main program logic\n`;
+    if (code.includes("//")) {
+      code += `console.log("Program executed successfully");`;
+    }
   }
 
   return code;
@@ -119,9 +147,9 @@ function generatePythonCode(elements) {
   let variables = new Set();
 
   elements.forEach((element) => {
-    const data = element.data || {};
-    const label = data.label || "";
-    const type = data.type || "";
+    // Handle both data formats: element.data.type/label and element.type/text
+    const type = element.type || element.data?.type || "";
+    const label = element.text || element.data?.label || "";
 
     if (type === "start" && !hasStart) {
       code += `def main():\n`;
@@ -146,12 +174,16 @@ function generatePythonCode(elements) {
       variables.add(varName);
       code += `    ${varName} = input("${label}: ")\n`;
     } else if (type === "output" || type === "display") {
-      code += `    print(${label})\n`;
+      code += `    print("${label}")\n`;
+    } else if (type === "end") {
+      code += `    # End of program\n`;
     }
   });
 
   if (hasStart) {
     code += `\nif __name__ == "__main__":\n    main()`;
+  } else {
+    code += `# Main program logic\nprint("Program executed successfully")`;
   }
 
   return code;
@@ -164,11 +196,13 @@ function generateJavaCode(elements) {
   code += `        Scanner scanner = new Scanner(System.in);\n\n`;
 
   elements.forEach((element) => {
-    const data = element.data || {};
-    const label = data.label || "";
-    const type = data.type || "";
+    // Handle both data formats: element.data.type/label and element.type/text
+    const type = element.type || element.data?.type || "";
+    const label = element.text || element.data?.label || "";
 
-    if (type === "process" || type === "rectangle") {
+    if (type === "start") {
+      code += `        // ${label}\n`;
+    } else if (type === "process" || type === "rectangle") {
       if (label.includes("=")) {
         code += `        // ${label}\n`;
         code += `        int ${label};\n`;
@@ -186,7 +220,9 @@ function generateJavaCode(elements) {
       code += `        System.out.print("${label}: ");\n`;
       code += `        String ${varName} = scanner.nextLine();\n`;
     } else if (type === "output" || type === "display") {
-      code += `        System.out.println(${label});\n`;
+      code += `        System.out.println("${label}");\n`;
+    } else if (type === "end") {
+      code += `        // ${label}\n`;
     }
   });
 
